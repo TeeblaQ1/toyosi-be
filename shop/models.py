@@ -6,7 +6,7 @@ from authentication.models import User
 class Category(models.Model):
     name = models.CharField(max_length=255, db_index=True)
     slug = models.SlugField(max_length=255, unique=True)
-    image = models.ImageField(upload_to='assets/images/categories/', null=True, blank=True)
+    image = models.ImageField(upload_to='toyosi-assets/images/categories/', null=True, blank=True)
 
     class Meta:
         ordering = ('name',)
@@ -21,7 +21,7 @@ class Product(models.Model):
     category = models.ForeignKey(Category, related_name='products', on_delete=models.CASCADE)
     name = models.CharField(max_length=255, db_index=True)
     slug = models.SlugField(max_length=255, db_index=True)
-    image = models.ImageField(upload_to='assets/images/products/%Y/%m/%d', null=True, blank=True)
+    image = models.ImageField(upload_to='toyosi-assets/images/products/%Y/%m/%d', null=True, blank=True)
     description = models.TextField(blank=True)
     price = models.DecimalField(max_digits=20, decimal_places=2)
     available = models.BooleanField(default=True)
@@ -30,7 +30,7 @@ class Product(models.Model):
 
     user_favorites = models.ManyToManyField(User, related_name='saved_products', blank=True)
     user_recent = models.ManyToManyField(User, related_name="recent_products", blank=True)
-    
+
     class Meta:
         ordering = ('name',)
         index_together = (('id', 'slug'),)
@@ -41,6 +41,6 @@ class Product(models.Model):
 
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, related_name='product_image', on_delete=models.CASCADE)
-    other_image = models.ImageField(upload_to='assets/images/products/%Y/%m/%d', null=True, blank=True)
+    other_image = models.ImageField(upload_to='toyosi-assets/images/products/%Y/%m/%d', null=True, blank=True)
     image_description = models.CharField(max_length=63, null=True, blank=True)
 

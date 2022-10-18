@@ -20,7 +20,7 @@ class Post(models.Model):
     description = models.TextField(null=True, blank=True)
     slug = models.SlugField(max_length=250, unique_for_date='publish')
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='blog_posts')
-    image = models.ImageField(upload_to='assets/images/posts/%Y/%m/%d', null=True, blank=True)
+    image = models.ImageField(upload_to='toyosi-assets/images/posts/%Y/%m/%d', null=True, blank=True)
     body = models.TextField()
     publish = models.DateTimeField(default=timezone.now)
     created = models.DateTimeField(auto_now_add=True)
