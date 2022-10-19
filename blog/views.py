@@ -66,7 +66,7 @@ class PostCommentsListView(generics.GenericAPIView):
     def post(self, request, slug):
         user = request.user
         data = request.data
-        if data['parent']:
+        if 'parent' in data.keys():
             try:
                 data['parent'] = Comment.objects.get(id=data['parent'])
             except Comment.DoesNotExist:
