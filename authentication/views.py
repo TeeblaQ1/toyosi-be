@@ -3,7 +3,7 @@ from rest_framework import generics, status, permissions
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from authentication.serializers import EmailVerificationSerializer, PasswordChangeSerializer, SavedItemsSerializer, ProfileSerializer, LoginSerializer, LogoutSerializer, RegisterSerializer, RequestPasswordResetEmailSerializer, SetNewPasswordSerializer
+from authentication.serializers import EmailVerificationSerializer, PasswordChangeSerializer, RequestVerificationLinkSerializer, SavedItemsSerializer, ProfileSerializer, LoginSerializer, LogoutSerializer, RegisterSerializer, RequestPasswordResetEmailSerializer, SetNewPasswordSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from authentication.models import Profile, User
 from authentication.utils import MailUtil
@@ -49,6 +49,47 @@ class RegisterView(generics.GenericAPIView):
                 'message': 'User registration successful', 
                 'data': user_data
                 }, status=status.HTTP_201_CREATED)
+
+class RequestVerificationLink(generics.GenericAPIView):
+
+    serializer_class = RequestVerificationLinkSerializer
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        user_data = serializer.data
+
+        email = user_data.get("email")
+        print(user_data)
+        if User.objects.filter(email=email).exists():
+            user = User.objects.get(email=email)
+            if user.is_verified:
+                
+                return Response({
+                    'status': 'Success', 
+                    'message': 'User verification link resent', 
+                    'data': user_data
+                    }, status=status.HTTP_201_CREATED)
+                    
+            token = RefreshToken.for_user(user).access_token
+
+            current_site = get_current_site(request).domain
+            relative_link = reverse('email-verify')
+            secure_protocol = "https://" if request.is_secure() else "http://"
+            absolute_url = secure_protocol + current_site + relative_link + "?token=" + str(token)
+            email_body = "Hi " + user.first_name + ",\nPlease use the link below to verify your email \n" + absolute_url
+            data = {
+                "email_body": email_body,
+                "email_subject": "Verify Your Email",
+                "to_email": user.email,
+            }
+            MailUtil.send_email(data)
+        return Response({
+            'status': 'Success', 
+            'message': 'User verification link resent', 
+            'data': user_data
+            }, status=status.HTTP_201_CREATED)
 
 
 class VerifyEmail(APIView):

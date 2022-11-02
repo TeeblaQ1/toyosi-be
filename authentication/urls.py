@@ -1,10 +1,11 @@
 from django.urls import path
-from authentication.views import ListAddressesAPIView, LogoutAPIView, PasswordChangeAPIView, RecentItemsAPIView, SavedItemsAPIView, RegisterView, RequestPasswordResetEmail, SetNewPasswordAPIView, UpdateProfileAPIView, VerifyEmail, LoginView, PasswordTokenCheckAPI
+from authentication.views import ListAddressesAPIView, LogoutAPIView, PasswordChangeAPIView, RecentItemsAPIView, RequestVerificationLink, SavedItemsAPIView, RegisterView, RequestPasswordResetEmail, SetNewPasswordAPIView, UpdateProfileAPIView, VerifyEmail, LoginView, PasswordTokenCheckAPI
 from rest_framework_simplejwt.views import TokenRefreshView
 
 
 urlpatterns = [
     path('register/', RegisterView.as_view(), name="register"),
+    path('request-verification-link/', RequestVerificationLink.as_view(), name="request-verification-link"),
     path('login/', LoginView.as_view(), name="login"),
     path('logout/', LogoutAPIView.as_view(), name="logout"),
     path('email/verify/', VerifyEmail.as_view(), name="email-verify"),
