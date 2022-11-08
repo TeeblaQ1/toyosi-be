@@ -10,12 +10,12 @@ class ProductsListAPIView(ListAPIView):
     
     serializer_class = ProductsListSerializer
     queryset = Product.objects.all()
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (permissions.AllowAny,)
 
 
 
 class ProductDetailAPIView(GenericAPIView):
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (permissions.AllowAny,)
     def get(self, request, id):
         user = request.user
         try:
@@ -52,11 +52,11 @@ class CategoriesListAPIView(ListAPIView):
     
     serializer_class = CategoriesListSerializer
     queryset = Category.objects.all()
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (permissions.AllowAny,)
     
 
 class CategoryDetailAPIView(RetrieveAPIView):
     serializer_class = CategoryDetailSerializer
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (permissions.AllowAny,)
     queryset = Category.objects.all()
 
