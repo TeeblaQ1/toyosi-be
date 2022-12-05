@@ -48,8 +48,8 @@ class EmailVerificationSerializer(serializers.ModelSerializer):
 class LoginSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(max_length=255, min_length=8)
     password = serializers.CharField(max_length=64, min_length=6, write_only=True)
-    first_name = serializers.CharField(max_length=255, min_length=8, read_only=True)
-    last_name = serializers.CharField(max_length=255, min_length=8, read_only=True)
+    first_name = serializers.CharField(max_length=255, min_length=2, read_only=True)
+    last_name = serializers.CharField(max_length=255, min_length=2, read_only=True)
     phone = serializers.CharField(max_length=255, min_length=8, read_only=True)
     tokens = serializers.JSONField(read_only=True)
     
