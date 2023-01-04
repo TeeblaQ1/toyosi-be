@@ -1,6 +1,9 @@
 from django.db import models
 from shop.models import Product
-from authentication.models import User
+from authentication.models import User, Profile
+import uuid
+from django.utils.http import int_to_base36
+
 
 IN_CART = 'IN_CART'
 ORDER_PLACED = 'ORDER_PLACED'
@@ -18,10 +21,20 @@ STATUSES = (
     (ORDER_DELIVERED, ORDER_DELIVERED),
 )
 
+
+
+ID_LENGTH = 12
+
+
+def id_gen() -> str:
+    """Generates random string whose length is of `ID_LENGTH`"""
+    return int_to_base36(uuid.uuid4().int)[:ID_LENGTH]
+
 class Order(models.Model):
     user = models.ForeignKey(User, related_name='orders', on_delete=models.CASCADE)
     status = models.CharField(choices=STATUSES, max_length=60, default=IN_CART)
     meta = models.JSONField()
+    receipt_number = models.CharField(max_length=50, default=id_gen, editable=False)
 
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
@@ -50,3 +63,13 @@ class OrderItem(models.Model):
     def get_cost(self):
         return self.price * self.quantity
 
+class OrderDelivery(models.Model):
+    order = models.ForeignKey(Order, related_name='shipping_address', on_delete=models.CASCADE)
+    first_name = models.CharField(max_length=255)
+    last_name = models.CharField(max_length=255)
+    email = models.EmailField(max_length=255, null=True, blank=True)
+    phone = models.CharField(max_length=16, null=True, blank=True)
+    state = models.CharField(max_length=255, null=True, blank=True)
+    country = models.CharField(max_length=255, null=True, blank=True)
+    city = models.CharField(max_length=255, null=True, blank=True)
+    address = models.TextField(null=True, blank=True)

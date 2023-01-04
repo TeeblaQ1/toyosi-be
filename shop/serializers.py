@@ -3,10 +3,10 @@ from shop.models import Category, Product
 
 
 class ProductsListSerializer(serializers.ModelSerializer):
-    
+    category_name = serializers.CharField(source='category.name')
     class Meta:
         model = Product
-        fields = '__all__'
+        fields = ('id', 'name', 'slug', 'image', 'description', 'price', 'available', 'created', 'updated', 'category', 'category_name')
 
 
 class ProductDetailSerializer(serializers.ModelSerializer):

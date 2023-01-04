@@ -3,7 +3,7 @@ from rest_framework import generics, status, permissions
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from authentication.serializers import EmailVerificationSerializer, PasswordChangeSerializer, SavedItemsSerializer, ProfileSerializer, LoginSerializer, LogoutSerializer, RegisterSerializer, RequestPasswordResetEmailSerializer, SetNewPasswordSerializer
+from authentication.serializers import EmailVerificationSerializer, PasswordChangeSerializer, RequestVerificationLinkSerializer, SavedItemsSerializer, ProfileSerializer, LoginSerializer, LogoutSerializer, RegisterSerializer, RequestPasswordResetEmailSerializer, SetNewPasswordSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from authentication.models import Profile, User
 from authentication.utils import MailUtil
@@ -17,11 +17,12 @@ from django.conf import settings
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from shop.models import Product
-
+from django.db import transaction
 class RegisterView(generics.GenericAPIView):
 
     serializer_class = RegisterSerializer
 
+    @transaction.atomic
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -49,6 +50,48 @@ class RegisterView(generics.GenericAPIView):
                 'message': 'User registration successful', 
                 'data': user_data
                 }, status=status.HTTP_201_CREATED)
+
+class RequestVerificationLink(generics.GenericAPIView):
+
+    serializer_class = RequestVerificationLinkSerializer
+
+    @transaction.atomic
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        user_data = serializer.data
+
+        email = user_data.get("email")
+        print(user_data)
+        if User.objects.filter(email=email).exists():
+            user = User.objects.get(email=email)
+            if user.is_verified:
+                
+                return Response({
+                    'status': 'Success', 
+                    'message': 'User verification link resent', 
+                    'data': user_data
+                    }, status=status.HTTP_201_CREATED)
+                    
+            token = RefreshToken.for_user(user).access_token
+
+            current_site = get_current_site(request).domain
+            relative_link = reverse('email-verify')
+            secure_protocol = "https://" if request.is_secure() else "http://"
+            absolute_url = secure_protocol + current_site + relative_link + "?token=" + str(token)
+            email_body = "Hi " + user.first_name + ",\nPlease use the link below to verify your email \n" + absolute_url
+            data = {
+                "email_body": email_body,
+                "email_subject": "Verify Your Email",
+                "to_email": user.email,
+            }
+            MailUtil.send_email(data)
+        return Response({
+            'status': 'Success', 
+            'message': 'User verification link resent', 
+            'data': user_data
+            }, status=status.HTTP_201_CREATED)
 
 
 class VerifyEmail(APIView):
@@ -92,7 +135,8 @@ class VerifyEmail(APIView):
 class LoginView(generics.GenericAPIView):
 
     serializer_class = LoginSerializer
-
+    
+    @transaction.atomic
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -108,6 +152,7 @@ class RequestPasswordResetEmail(generics.GenericAPIView):
 
     serializer_class = RequestPasswordResetEmailSerializer
 
+    @transaction.atomic
     def post(self, request):
         serializer = self.serializer_class(data={**request.data, 'request': request})
         serializer.is_valid(raise_exception=True)
@@ -173,6 +218,7 @@ class SetNewPasswordAPIView(generics.GenericAPIView):
 
     serializer_class = SetNewPasswordSerializer
 
+    @transaction.atomic
     def patch(self, request):
 
         serializer = self.serializer_class(data=request.data)
@@ -190,6 +236,7 @@ class LogoutAPIView(generics.GenericAPIView):
     
     permission_classes = (permissions.IsAuthenticated,)
 
+    @transaction.atomic
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -226,6 +273,7 @@ class ListAddressesAPIView(generics.GenericAPIView):
                 'data': address_list
                 }, status=status.HTTP_200_OK)
     
+    @transaction.atomic
     def post(self, request):
         user = request.user
         data = request.data
@@ -256,6 +304,7 @@ class ListAddressesAPIView(generics.GenericAPIView):
                 'data': user.email
                 }, status=status.HTTP_200_OK)
     
+    @transaction.atomic
     def put(self, request):
         user = request.user
         data = request.data
@@ -278,6 +327,7 @@ class ListAddressesAPIView(generics.GenericAPIView):
                 'data': user.email
                 }, status=status.HTTP_200_OK)
     
+    @transaction.atomic
     def delete(self, request):
         user = request.user
         try:
@@ -303,6 +353,7 @@ class UpdateProfileAPIView(generics.GenericAPIView):
 
     serializer_class = ProfileSerializer
 
+    @transaction.atomic
     def put(self, request):
         user = request.user
         data = request.data
@@ -338,6 +389,7 @@ class PasswordChangeAPIView(generics.GenericAPIView):
 
     serializer_class = PasswordChangeSerializer
 
+    @transaction.atomic
     def put(self, request):
         user = request.user
         try:
@@ -370,6 +422,7 @@ class SavedItemsAPIView(generics.GenericAPIView):
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = SavedItemsSerializer
 
+    @transaction.atomic
     def post(self, request):
         user = request.user
         serializer = self.serializer_class(data=request.data)
@@ -421,6 +474,7 @@ class SavedItemsAPIView(generics.GenericAPIView):
                 'data': []
                 }, status=status.HTTP_401_UNAUTHORIZED)
     
+    @transaction.atomic
     def delete(self, request):
         user = request.user
         product_id = self.request.query_params.get("product_id")
@@ -471,6 +525,7 @@ class RecentItemsAPIView(generics.GenericAPIView):
                 'data': []
                 }, status=status.HTTP_401_UNAUTHORIZED)
     
+    @transaction.atomic
     def delete(self, request):
         user = request.user
         product_id = self.request.query_params.get("product_id")

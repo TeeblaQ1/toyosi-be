@@ -10,19 +10,20 @@ class ProductsListAPIView(ListAPIView):
     
     serializer_class = ProductsListSerializer
     queryset = Product.objects.all()
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (permissions.AllowAny,)
 
 
 
 class ProductDetailAPIView(GenericAPIView):
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (permissions.AllowAny,)
     def get(self, request, id):
         user = request.user
         try:
-            user = User.objects.get(email=user)
             # add to user's recently viewed items
             product_instance = Product.objects.get(id=id)
-            product_instance.user_recent.add(user)
+            if not user.is_anonymous:
+                user = User.objects.get(email=user)
+                product_instance.user_recent.add(user)
             product = list(Product.objects.filter(id=id).values('name', 'slug', 'image', 'description', 'price', 'category'))[0]
 
             other_images = list(ProductImage.objects.filter(product=Product.objects.get(id=id)).values('other_image', 'image_description'))
@@ -52,11 +53,11 @@ class CategoriesListAPIView(ListAPIView):
     
     serializer_class = CategoriesListSerializer
     queryset = Category.objects.all()
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (permissions.AllowAny,)
     
 
 class CategoryDetailAPIView(RetrieveAPIView):
     serializer_class = CategoryDetailSerializer
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (permissions.AllowAny,)
     queryset = Category.objects.all()
 
