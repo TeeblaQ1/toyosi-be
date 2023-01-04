@@ -20,7 +20,7 @@ services:
     ports:
       - "8000:8000"
     env_file:
-      - ./env.staging
+      - ./.env.staging
     environment:
       - POSTGRES_NAME=postgres
       - POSTGRES_USER=postgres
