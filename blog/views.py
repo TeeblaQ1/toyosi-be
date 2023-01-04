@@ -4,7 +4,7 @@ from blog.models import Post, Comment
 from blog.serializers import CommentsSerializer, PostSerializer
 from django.db.models import Count
 from django.contrib.postgres.search import SearchVector, SearchRank, SearchQuery
-
+from django.db import transaction
 # Create your views here.
 class PostListView(generics.ListAPIView):
     # queryset = Post.published.all()
@@ -63,6 +63,7 @@ class PostCommentsListView(generics.GenericAPIView):
             'data': comments
             }, status=status.HTTP_200_OK)
 
+    @transaction.atomic
     def post(self, request, slug):
         user = request.user
         data = request.data

@@ -5,7 +5,7 @@ from authentication.models import User
 from orders.models import Order, OrderItem, OrderDelivery, IN_CART, ORDER_PLACED, ORDER_CANCELED, ORDER_RETURNED, ORDER_DELIVERED, ORDER_DISPATCHED
 from orders.serializers import AddToCartSerializer, OrdersDetailSerializer, OrdersSerializer, OrdersDeliverySerializer
 from shop.models import Product
-
+from django.db import transaction
 
 class OrdersListView(generics.GenericAPIView):
     permission_classes = (permissions.IsAuthenticated,)
@@ -114,7 +114,7 @@ class CartView(generics.GenericAPIView):
                 'message': 'Unauthorized', 
                 'data': []
                 }, status=status.HTTP_401_UNAUTHORIZED)
-
+    @transaction.atomic
     def post(self, request):
         user = request.user
 
@@ -166,6 +166,7 @@ class CartView(generics.GenericAPIView):
                 'data': []
                 }, status=status.HTTP_401_UNAUTHORIZED)
     
+    @transaction.atomic
     def delete(self, request):
         user = request.user
         product_id = self.request.query_params.get("product_id")
@@ -205,6 +206,7 @@ class OrdersCreateView(generics.GenericAPIView):
 
     serializer_class = OrdersDeliverySerializer
 
+    @transaction.atomic
     def post(self, request):
         user = request.user
 

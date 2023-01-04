@@ -17,11 +17,12 @@ from django.conf import settings
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from shop.models import Product
-
+from django.db import transaction
 class RegisterView(generics.GenericAPIView):
 
     serializer_class = RegisterSerializer
 
+    @transaction.atomic
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -54,6 +55,7 @@ class RequestVerificationLink(generics.GenericAPIView):
 
     serializer_class = RequestVerificationLinkSerializer
 
+    @transaction.atomic
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -133,7 +135,8 @@ class VerifyEmail(APIView):
 class LoginView(generics.GenericAPIView):
 
     serializer_class = LoginSerializer
-
+    
+    @transaction.atomic
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -149,6 +152,7 @@ class RequestPasswordResetEmail(generics.GenericAPIView):
 
     serializer_class = RequestPasswordResetEmailSerializer
 
+    @transaction.atomic
     def post(self, request):
         serializer = self.serializer_class(data={**request.data, 'request': request})
         serializer.is_valid(raise_exception=True)
@@ -214,6 +218,7 @@ class SetNewPasswordAPIView(generics.GenericAPIView):
 
     serializer_class = SetNewPasswordSerializer
 
+    @transaction.atomic
     def patch(self, request):
 
         serializer = self.serializer_class(data=request.data)
@@ -231,6 +236,7 @@ class LogoutAPIView(generics.GenericAPIView):
     
     permission_classes = (permissions.IsAuthenticated,)
 
+    @transaction.atomic
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -267,6 +273,7 @@ class ListAddressesAPIView(generics.GenericAPIView):
                 'data': address_list
                 }, status=status.HTTP_200_OK)
     
+    @transaction.atomic
     def post(self, request):
         user = request.user
         data = request.data
@@ -297,6 +304,7 @@ class ListAddressesAPIView(generics.GenericAPIView):
                 'data': user.email
                 }, status=status.HTTP_200_OK)
     
+    @transaction.atomic
     def put(self, request):
         user = request.user
         data = request.data
@@ -319,6 +327,7 @@ class ListAddressesAPIView(generics.GenericAPIView):
                 'data': user.email
                 }, status=status.HTTP_200_OK)
     
+    @transaction.atomic
     def delete(self, request):
         user = request.user
         try:
@@ -344,6 +353,7 @@ class UpdateProfileAPIView(generics.GenericAPIView):
 
     serializer_class = ProfileSerializer
 
+    @transaction.atomic
     def put(self, request):
         user = request.user
         data = request.data
@@ -379,6 +389,7 @@ class PasswordChangeAPIView(generics.GenericAPIView):
 
     serializer_class = PasswordChangeSerializer
 
+    @transaction.atomic
     def put(self, request):
         user = request.user
         try:
@@ -411,6 +422,7 @@ class SavedItemsAPIView(generics.GenericAPIView):
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = SavedItemsSerializer
 
+    @transaction.atomic
     def post(self, request):
         user = request.user
         serializer = self.serializer_class(data=request.data)
@@ -462,6 +474,7 @@ class SavedItemsAPIView(generics.GenericAPIView):
                 'data': []
                 }, status=status.HTTP_401_UNAUTHORIZED)
     
+    @transaction.atomic
     def delete(self, request):
         user = request.user
         product_id = self.request.query_params.get("product_id")
@@ -512,6 +525,7 @@ class RecentItemsAPIView(generics.GenericAPIView):
                 'data': []
                 }, status=status.HTTP_401_UNAUTHORIZED)
     
+    @transaction.atomic
     def delete(self, request):
         user = request.user
         product_id = self.request.query_params.get("product_id")
